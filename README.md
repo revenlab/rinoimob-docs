@@ -50,3 +50,21 @@ mkdocs build
 
 ## Issues
 Documentation improvements are tracked in [.projects](https://github.com/revenlab/.projects/issues?q=label%3Adocs).
+
+## 6. Design System: Glassmorphism
+
+Complete design system documentation for the modern Glassmorphism UI:
+
+- **Color Palette**: Primary blues, warm oranges, and neutral tones
+- **Glass Effects**: Backdrop blur, transparency, and layering
+- **Component Styles**: Cards, buttons, inputs, navigation
+- **Typography**: Font families, sizes, and hierarchy
+- **Spacing & Borders**: Consistent sizing system
+- **Animations**: Smooth transitions and hover effects
+- **Vue Examples**: Complete component implementations
+- **Accessibility**: WCAG compliance and contrast guidelines
+- **Performance**: Best practices for mobile optimization
+- **Dark Mode**: Native support for elegant dark backgrounds
+
+👉 **[Read Full Design System](./06-DESIGN-SYSTEM-GLASSMORPHISM.md)**
+

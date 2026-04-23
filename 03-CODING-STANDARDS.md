@@ -2,48 +2,80 @@
 
 Code conventions and style guides for the Rinoimob project.
 
-## General Principles
+## Code Style
 
-- **Readability**: Code should be easy to understand
-- **Consistency**: Follow established patterns within the codebase
-- **Maintainability**: Write code that's easy to modify and test
-- **Security**: Follow security best practices
-- **Performance**: Write efficient code
+### K&R Style (All Languages)
+
+All code follows **K&R style** formatting:
+- Opening braces on the same line as the statement
+- Closing braces on their own line
+- 4-space indentation
+- No tabs
+
+#### Java Example
+```java
+public class UserService {
+    public User createUser(String email) {
+        if (email == null || email.isEmpty()) {
+            throw new IllegalArgumentException("Email required");
+        }
+        User user = new User(email);
+        return userRepository.save(user);
+    }
+}
+```
+
+#### TypeScript Example
+```typescript
+export class UserStore {
+    async createUser(email: string): Promise<User> {
+        if (!email) {
+            throw new Error("Email required");
+        }
+        const user = new User(email);
+        return await this.userApi.save(user);
+    }
+}
+```
+
+#### SQL Example
+```sql
+CREATE TABLE users (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    guid UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+    email VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
+);
+```
 
 ## Java Backend
 
 ### File Structure
 ```
 src/main/java/com/rinoimob/
-├── api/                 # REST Controllers
-├── domain/             # JPA Entities and DTOs
-├── service/            # Business logic services
-├── repository/         # Data access layer
-├── config/             # Spring configuration
-├── exception/          # Custom exceptions
-├── util/               # Utility classes
-└── RinoimobApplication.java
+├── api/
+│   ├── controller/
+│   ├── dto/
+│   │   ├── request/
+│   │   └── response/
+│   └── exception/
+├── domain/
+│   └── entity/
+├── service/
+├── repository/
+├── config/
+├── security/
+└── util/
 ```
 
 ### Naming Conventions
 - **Classes**: PascalCase (`UserService`, `PropertyController`)
-- **Methods**: camelCase (`getPropertyById`, `createUser`)
-- **Constants**: UPPER_SNAKE_CASE (`MAX_RETRY_ATTEMPTS`, `API_VERSION`)
-- **Variables**: camelCase (`userId`, `propertyName`)
-
-### Code Style
-- **Indentation**: 4 spaces
-- **Line Length**: Maximum 120 characters
-- **Brackets**: Allman style for multi-line blocks
-```java
-public void processProperty(Property property)
-{
-    if (property != null)
-    {
-        // Handle property
-    }
-}
-```
+- **Methods**: camelCase (`createUser()`, `findPropertiesByTenantId()`)
+- **Constants**: UPPER_SNAKE_CASE (`MAX_PAGE_SIZE`, `DEFAULT_LOCALE`)
+- **Variables**: camelCase (`userId`, `tenantContext`)
+- **Packages**: lowercase with dots (`com.rinoimob.domain`, `com.rinoimob.service`)
 
 ### Annotations
 - Use `@Slf4j` from Lombok for logging
@@ -78,21 +110,26 @@ class PropertyServiceTest
 ### File Structure
 ```
 src/
-├── components/    # Reusable Vue components
-├── views/        # Page components
-├── stores/       # Pinia state management
-├── router/       # Route configuration
-├── types/        # TypeScript interfaces
-├── utils/        # Helper functions
-├── services/     # API services
-└── styles/       # CSS/SCSS files
+├── components/
+│   ├── common/
+│   ├── forms/
+│   └── layout/
+├── views/
+├── stores/
+├── services/
+├── types/
+├── utils/
+├── styles/
+└── assets/
 ```
 
 ### Naming Conventions
-- **Components**: PascalCase (`UserCard.vue`, `PropertyForm.vue`)
-- **Functions**: camelCase (`formatDate`, `calculateTotal`)
-- **Constants**: UPPER_SNAKE_CASE (`API_TIMEOUT`, `MAX_RETRIES`)
-- **Variables**: camelCase (`userId`, `isLoading`)
+- **Classes**: PascalCase (`UserStore`, `PropertyApi`)
+- **Functions**: camelCase (`createUser()`, `fetchProperties()`)
+- **Constants**: UPPER_SNAKE_CASE (`API_BASE_URL`, `MAX_RETRIES`)
+- **Variables**: camelCase (`userId`, `tenantId`)
+- **Components**: PascalCase (`UserForm.vue`, `PropertyCard.vue`)
+- **Stores**: camelCase (`useUserStore`, `usePropertyStore`)
 
 ### TypeScript Style
 ```typescript
@@ -162,85 +199,87 @@ const handleClick = () => {
 </div>
 ```
 
-## Git Commits
+## Git Conventions
+
+### Branch Naming
+
+Branches follow the pattern: **issueNUMBER**
+
+Examples:
+- `issue1` - Multi-Tenant Architecture
+- `issue9` - User Registration with Email Validation
+- `issue23` - Property CRUD Operations
+- `issue494` - Any future issue
 
 ### Commit Message Format
 
+All commits must follow this format:
+
 ```
-<type>(<scope>): <subject>
+issueNUMBER: Brief description of changes
 
-<body>
-
-<footer>
+Detailed explanation of changes made:
+- Bullet point 1
+- Bullet point 2
+- Bullet point 3
 
 Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 ```
 
-### Types
-- `feat`: A new feature
-- `fix`: A bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes (formatting, missing semicolons, etc.)
-- `refactor`: Code refactoring
-- `perf`: Performance improvements
-- `test`: Adding or updating tests
-- `chore`: Build, CI/CD, dependencies
-
-### Example Commits
+#### Example
 ```
-feat(auth): implement JWT token refresh
+issue1: Implement multi-tenant architecture
 
-Add automatic token refresh mechanism to maintain user sessions.
-Tokens are refreshed when they expire within the next hour.
-
-- Add RefreshTokenService
-- Add @RefreshToken annotation
-- Add integration tests
+- Add TenantContext middleware for request filtering
+- Configure row-level security (RLS) policies
+- Add audit logging (actor_id, tenant_id, ip_address)
+- Implement tenant_id injection into all queries
+- Add unit tests for tenant isolation
 
 Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 ```
 
+## API Documentation
+
+### Swagger/OpenAPI Annotations
+
+All API endpoints must be documented with Swagger annotations:
+
+```java
+@RestController
+@RequestMapping("/api/v1/users")
+@OpenAPIDefinition(info = @Info(title = "User API", version = "1.0"))
+public class UserController {
+
+    @PostMapping
+    @Operation(summary = "Create a new user", description = "Register a new user with email validation")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "User created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid input"),
+        @ApiResponse(responseCode = "409", description = "Email already exists")
+    })
+    public ResponseEntity<UserResponse> createUser(
+        @Valid @RequestBody CreateUserRequest request) {
+        return ResponseEntity.status(201).body(userService.createUser(request));
+    }
+}
 ```
-fix(property): handle null description in form
 
-The property form was crashing when description was null.
-This adds proper null checking.
+### DTO Documentation
 
-Fixes #123
-
-Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
-```
-
-## Pull Request Guidelines
-
-### Branch Naming
-- `feature/description` - New features
-- `bugfix/description` - Bug fixes
-- `hotfix/description` - Critical production fixes
-- `refactor/description` - Code refactoring
-
-### PR Template
-```markdown
-## Description
-Brief description of changes
-
-## Related Issue
-Fixes #(issue number)
-
-## Type of Change
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Breaking change
-
-## Testing
-How were these changes tested?
-
-## Checklist
-- [ ] My code follows the style guidelines
-- [ ] I have performed a self-review
-- [ ] I have commented complex areas
-- [ ] Tests added/updated
-- [ ] Documentation updated
+```java
+@Data
+@Schema(description = "User registration request")
+public class CreateUserRequest {
+    
+    @Schema(description = "User email address", example = "user@example.com")
+    @Email
+    private String email;
+    
+    @Schema(description = "Password (min 10 chars, uppercase, lowercase, number, symbol)")
+    @NotBlank
+    private String password;
+}
 ```
 
 ## Code Review Checklist
@@ -265,23 +304,155 @@ How were these changes tested?
 - **Linter**: ESLint
 - **Type Checking**: TypeScript strict mode
 
+## Testing Standards
+
+### Test Naming
+- Unit tests: `{ClassName}Test.java`
+- Integration tests: `{ClassName}IntegrationTest.java`
+- Test methods: `should{ExpectedBehavior}When{Condition}()`
+
+### Example
+```java
+class UserServiceTest {
+    
+    @Test
+    void shouldCreateUserWhenValidEmailProvided() {
+        // Arrange
+        String email = "test@example.com";
+        
+        // Act
+        User result = userService.createUser(email);
+        
+        // Assert
+        assertThat(result.getEmail()).isEqualTo(email);
+    }
+    
+    @Test
+    void shouldThrowExceptionWhenEmailIsNull() {
+        // Arrange
+        String email = null;
+        
+        // Act & Assert
+        assertThatThrownBy(() -> userService.createUser(email))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+}
+```
+
+## Security Standards
+
+### Password Hashing
+- Use **Argon2id** for password hashing
+- Never store plaintext passwords
+- Use Spring Security's `PasswordEncoder` abstraction
+
+### Authentication
+- Use **JWT (JSON Web Tokens)** for stateless auth
+- Include tenant_id in token claims
+- Set appropriate token expiration (15 min access, 7 day refresh)
+
+### Authorization
+- Implement row-level security at database level
+- Always filter queries by tenant_id
+- Use Spring Security annotations (@PreAuthorize, @Secured)
+
+### Audit Logging
+- Log all user actions with: actor_id, tenant_id, action, timestamp, ip_address
+- Implement soft deletes (deleted_at timestamp, never hard delete)
+
 ## Comments
 
-Comments should explain **why**, not **what**:
+Only comment code that needs clarification - comments should explain **why**, not **what**:
 
 ```java
 // Good
 // Calculate additional charges for late payments
 double lateCharge = amount * 0.05;
 
-// Bad
+// Bad  
 // Multiply amount by 0.05
 double lateCharge = amount * 0.05;
 ```
 
-## Documentation
+## Quality Checklist
 
-- README files for each component
-- Inline comments for complex logic
-- JSDoc/Javadoc for public APIs
-- Architecture Decision Records (ADR) for major changes
+Before submitting a PR:
+- [ ] Follows K&R style
+- [ ] Naming conventions matched
+- [ ] Tests written and passing
+- [ ] No hardcoded values (use environment variables)
+- [ ] Swagger annotations added (backend)
+- [ ] Comments added for complex logic
+- [ ] No console.log or System.out.println left
+- [ ] Commit message follows format
+- [ ] Branch name matches issueNUMBER pattern
+
+## Frontend Design System: Glassmorphism
+
+All frontends (App and Website) use the **Glassmorphism** design pattern.
+
+### Core Elements
+
+**Glass Cards**
+```vue
+<div class="glass-card">
+  <div class="card-content">
+    <!-- Content -->
+  </div>
+</div>
+
+<style scoped>
+.glass-card {
+  background: rgba(26, 30, 39, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+</style>
+```
+
+**Color Palette**
+```
+Primary: #0066FF (Vibrant Blue)
+Secondary: #FF6B35 (Warm Orange)
+Dark BG: #0F1419 (Deep Navy)
+Dark Card: #1A1E27
+Light Text: #F5F7FA
+Muted Text: #A0A9B8
+```
+
+**Blur Effects**
+```css
+/* Light blur (subtle) */
+backdrop-filter: blur(4px);
+
+/* Medium blur (standard) */
+backdrop-filter: blur(10px);
+
+/* Heavy blur (depth) */
+backdrop-filter: blur(20px);
+```
+
+### Design Standards
+
+- Use K&R style CSS (opening braces on same line)
+- Follow glassmorphism color palette
+- Apply backdrop blur to all cards and overlays
+- Maintain consistent spacing (8px base unit)
+- Use soft shadows for depth
+- Ensure WCAG AA contrast ratios (4.5:1)
+- Test on dark backgrounds (primary theme)
+
+### Complete Design System
+
+See **[Design System: Glassmorphism](./06-DESIGN-SYSTEM-GLASSMORPHISM.md)** for:
+- Full color palette and gradients
+- Component examples (Property Card, Navigation, Hero)
+- Typography system
+- Animation guidelines
+- Accessibility requirements
+- Performance best practices
+

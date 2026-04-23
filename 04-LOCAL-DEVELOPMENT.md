@@ -1,4 +1,4 @@
-# Local Development
+# Local Development Guide
 
 Guide for running and developing the Rinoimob platform locally.
 
@@ -41,12 +41,12 @@ cp .env.example .env
 
 # Build and run
 mvn clean spring-boot:run
-
-# Or in terminal 2, just run
-mvn spring-boot:run
 ```
 
-Backend will be available at: `http://localhost:8080`
+Backend will be available at:
+- API: `http://localhost:8080`
+- **Swagger UI**: `http://localhost:8080/swagger-ui.html`
+- **OpenAPI Spec**: `http://localhost:8080/v3/api-docs`
 
 Check if running:
 ```bash

@@ -2,319 +2,318 @@
 
 How to contribute to the Rinoimob project.
 
-## Getting Started
-
-1. Fork the repository (if external contributor)
-2. Clone your fork or the main repository
-3. Create a feature branch
-4. Make your changes
-5. Submit a pull request
-
 ## Branch Naming Convention
 
-All branches must follow this naming convention:
+All feature branches must follow the pattern: **issueNUMBER**
 
-### Feature Branches
+Examples:
 ```
-feature/<ticket-id>-<short-description>
-feature/RINO-123-user-authentication
-feature/auth-jwt-implementation
-```
-
-### Bugfix Branches
-```
-bugfix/<ticket-id>-<short-description>
-bugfix/RINO-456-null-pointer-exception
-bugfix/property-form-crash
+issue1      (Multi-Tenant Architecture)
+issue9      (User Registration)
+issue23     (Property CRUD)
+issue494    (Any future issue)
 ```
 
-### Hotfix Branches (Production Fixes)
-```
-hotfix/<ticket-id>-<short-description>
-hotfix/RINO-789-database-connection-leak
-hotfix/security-vulnerability-patch
-```
+### Creating a Branch
 
-### Refactor Branches
-```
-refactor/<short-description>
-refactor/auth-service-consolidation
-refactor/api-response-wrapper
+```bash
+git checkout -b issue1
 ```
 
-## Git Commit Format
+**Never use branch names like:**
+- `feature/something`
+- `bugfix/something`
+- `my-feature`
+- `temp-branch`
 
-Always use the conventional commit format with Copilot co-author:
+Always use the issue number as the branch name.
 
-```
-<type>(<scope>): <subject>
+## Commit Message Format
 
-<body>
-
-<footer>
-
-Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
-```
-
-### Types
-
-- **feat**: A new feature
-- **fix**: A bug fix
-- **docs**: Documentation changes
-- **style**: Code style changes (formatting, missing semicolons, etc.)
-- **refactor**: Code refactoring
-- **perf**: Performance improvements
-- **test**: Adding or updating tests
-- **chore**: Build, CI/CD, dependencies
-
-### Scope
-
-The scope should specify which part of the codebase:
-- `auth`: Authentication related
-- `property`: Property management
-- `user`: User management
-- `api`: API layer
-- `ui`: User interface
-- `config`: Configuration
-- `test`: Testing
-
-### Subject
-
-- Use imperative mood ("add" not "added" or "adds")
-- Don't capitalize first letter
-- No period (.) at the end
-- Max 50 characters
-
-### Body
-
-- Explain **what** and **why**, not **how**
-- Wrap at 72 characters
-- Separate from subject with blank line
-- Use bullet points for multiple changes
-
-### Footer
-
-- Reference issues: `Fixes #123`, `Closes #456`
-- Document breaking changes: `BREAKING CHANGE: description`
-
-### Example Commits
+Every commit must follow this format:
 
 ```
-feat(auth): implement JWT token refresh
+issueNUMBER: Brief description of changes
 
-Add automatic token refresh mechanism to maintain user sessions
-without requiring re-login. Tokens are refreshed when they expire
-within the next hour.
-
-- Add RefreshTokenService with scheduled refresh logic
-- Add @RefreshToken annotation for protected endpoints
-- Add integration tests for token lifecycle
-- Update SecurityConfig to register token refresh filter
-
-Fixes #123
-
-Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
-```
-
-```
-fix(property): handle null description in form
-
-The property form was crashing when the description field
-was null. This adds proper null checking and validation.
-
-- Add null check in PropertyFormComponent
-- Add test case for null description
-- Update PropertyValidator to handle edge cases
-
-Fixes #456
-
-Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
-```
-
-```
-refactor(api): consolidate response handling
-
-Consolidate HTTP response handling into a single ResponseWrapper
-to provide consistent response format across all endpoints.
-
-- Create ResponseWrapper<T> class
-- Update all controllers to use wrapper
-- Remove duplicate response formatting code
-- Add tests for response wrapper
-
-BREAKING CHANGE: API responses now wrapped in ResponseWrapper.
-Update clients to access data from response.data field.
-
-Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
-```
-
-## Pull Request Process
-
-### Before Creating PR
-
-1. **Update from main**
-   ```bash
-   git fetch origin
-   git rebase origin/main
-   ```
-
-2. **Run tests**
-   ```bash
-   # Backend
-   cd rinoimob-backend && mvn test
-   
-   # App
-   cd rinoimob-app && npm run build
-   
-   # Website
-   cd rinoimob-website && npm run build
-   ```
-
-3. **Build verification**
-   ```bash
-   # Backend
-   mvn clean package -DskipTests
-   
-   # App
-   npm run build
-   
-   # Website
-   npm run build
-   ```
-
-### Creating PR
-
-1. Push your branch
-   ```bash
-   git push origin feature/RINO-123-your-feature
-   ```
-
-2. Go to GitHub and create Pull Request
-3. Fill out the PR template completely
-
-### PR Template
-
-```markdown
-## Description
-Brief description of what this PR does
-
-## Related Issue
-Fixes #(issue number)
-Relates to #(issue number)
-
-## Type of Change
-- [ ] Bug fix (non-breaking)
-- [ ] New feature (non-breaking)
-- [ ] Breaking change
-- [ ] Documentation update
-
-## Changes Made
+Detailed explanation:
 - Change 1
 - Change 2
 - Change 3
 
-## Testing
-How were these changes tested?
-- [ ] Unit tests added
-- [ ] Integration tests added
-- [ ] Manual testing completed
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+```
 
-## Checklist
-- [ ] Code follows project style guidelines
-- [ ] Self-review of code completed
-- [ ] Comments added for complex logic
-- [ ] Documentation updated
-- [ ] Tests added/updated
-- [ ] Build passes
-- [ ] No new warnings
+### Example Commit
+
+```bash
+git commit -m "issue1: Implement multi-tenant architecture
+
+- Add TenantContext middleware for request filtering
+- Configure row-level security (RLS) policies
+- Add audit logging (actor_id, tenant_id, ip_address)
+- Implement tenant_id injection into all queries
+- Add unit tests for tenant isolation
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+```
+
+### Commit Best Practices
+
+- **Keep commits small and focused** - one issue per commit
+- **Write descriptive messages** - future developers need to understand why
+- **Include the Copilot co-author trailer** - always on every commit
+- **Use imperative mood** - "Add feature" not "Added feature"
+
+## Pull Request Workflow
+
+### 1. Create Feature Branch
+```bash
+git checkout -b issue9
+```
+
+### 2. Make Changes
+- Follow coding standards (K&R style, naming conventions)
+- Write tests for new code
+- Update documentation
+- Add Swagger annotations (backend APIs)
+
+### 3. Commit Changes
+```bash
+git add .
+git commit -m "issue9: User registration implementation
+
+- Implement registration endpoint with email validation
+- Add Argon2id password hashing
+- Create email verification flow
+- Add unit and integration tests
+- Update API documentation
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+```
+
+### 4. Push to GitHub
+```bash
+git push origin issue9
+```
+
+### 5. Open Pull Request
+
+**PR Title Format:**
+```
+[issue9] User registration with email validation
+```
+
+**PR Description Template:**
+```markdown
+## Issue
+Closes #9
+
+## Changes
+- Describe change 1
+- Describe change 2
+- Describe change 3
+
+## Testing
+- How was this tested?
+- Test results
 
 ## Screenshots (if applicable)
-Add screenshots for UI changes
+- Before/after images
+
+## Checklist
+- [ ] Code follows K&R style
+- [ ] Tests written and passing
+- [ ] API documentation updated (if backend)
+- [ ] No hardcoded values
+- [ ] Database schema documented (if changed)
+- [ ] No console.log or System.out.println
 ```
 
-## Code Review Process
+### 6. Code Review
 
-### Review Guidelines
+- At least one approval required before merge
+- Address all feedback before merging
+- Resolve conflicts if any
+- Ensure all CI/CD checks pass
 
-Reviewers will check:
-- ✅ Code follows style guidelines (see [Coding Standards](./03-CODING-STANDARDS.md))
-- ✅ Tests are included and passing
-- ✅ Documentation is updated
-- ✅ No unnecessary dependencies added
-- ✅ Security best practices followed
-- ✅ Performance implications considered
-- ✅ Error handling is comprehensive
+### 7. Merge to Main
 
-### Responding to Reviews
+Once approved:
+```bash
+# Option 1: Squash commits (preferred for clean history)
+git merge --squash issue9
 
-1. Address all comments
-2. Push additional commits for changes
-3. Re-request review after making changes
-4. Avoid force-pushing (it deletes conversation history)
+# Option 2: Merge with history
+git merge issue9
+```
 
-## Common Issues
+Then delete the branch:
+```bash
+git branch -d issue9
+git push origin --delete issue9
+```
 
-### Merge Conflicts
+## Code Review Checklist
+
+Reviewers should verify:
+
+### Code Quality
+- [ ] Follows K&R style
+- [ ] Naming conventions matched
+- [ ] No duplication
+- [ ] Comments explain "why" not "what"
+- [ ] No hardcoded values
+
+### Testing
+- [ ] Unit tests written
+- [ ] Integration tests for critical paths
+- [ ] Tests are passing
+- [ ] Coverage adequate
+
+### Documentation
+- [ ] README updated (if needed)
+- [ ] API docs updated (if backend)
+- [ ] Database schema documented (if changed)
+- [ ] Comments added for complex logic
+
+### Security
+- [ ] No sensitive data exposed
+- [ ] Input validation implemented
+- [ ] SQL injection prevention
+- [ ] XSS prevention (frontend)
+- [ ] CSRF protection (frontend)
+- [ ] Authentication/authorization checks
+
+### Performance
+- [ ] No N+1 queries
+- [ ] Efficient algorithms
+- [ ] No memory leaks
+- [ ] Appropriate caching used
+
+## Development Workflow
+
+### Backend Development
+
+1. Create branch: `git checkout -b issue1`
+2. Update `pom.xml` for dependencies
+3. Create entity classes
+4. Create repository interfaces
+5. Create service classes with business logic
+6. Create controller endpoints with Swagger annotations
+7. Write unit tests
+8. Write integration tests
+9. Commit and push
+10. Create PR with checklist
+
+### Frontend Development
+
+1. Create branch: `git checkout -b issue23`
+2. Create components
+3. Update stores (Pinia)
+4. Add forms and validation
+5. Add error handling
+6. Add loading states
+7. Write component tests
+8. Commit and push
+9. Create PR with checklist
+
+### Documentation
+
+1. Create branch: `git checkout -b issue-docs-1`
+2. Update markdown files
+3. Add examples
+4. Verify formatting
+5. Commit and push
+6. Create PR
+
+## Common Commands
+
+### Git Commands
+```bash
+git checkout -b issue9        # Create issue branch
+git status                    # Check status
+git add .                     # Stage changes
+git commit -m "issue9: ..."   # Commit
+git push origin issue9        # Push to GitHub
+```
+
+### Maven Commands
+```bash
+mvn clean              # Clean build
+mvn compile            # Compile code
+mvn test               # Run tests
+mvn package            # Create JAR
+mvn spring-boot:run    # Run application
+```
+
+### npm Commands
+```bash
+npm install            # Install dependencies
+npm run dev            # Start dev server
+npm run build          # Build for production
+npm run test           # Run tests
+npm run lint           # Run linter
+```
+
+### Docker Commands
+```bash
+docker-compose up -d                # Start services
+docker-compose down                 # Stop services
+docker-compose logs -f              # View logs
+docker-compose ps                   # View status
+docker-compose restart postgres     # Restart service
+```
+
+## Troubleshooting
+
+### Port Already in Use
 
 ```bash
-# Update with latest main
-git fetch origin
-git rebase origin/main
-
-# Resolve conflicts in your editor
-# Then continue
-git rebase --continue
-
-# Force push your branch
-git push origin feature/branch-name --force-with-lease
+lsof -i :8080
+lsof -i :5173
+lsof -i :3000
 ```
 
-### Accidental Commits on Wrong Branch
+### Database Connection Error
 
 ```bash
-# Create new branch from current position
-git branch feature/correct-branch
-
-# Reset current branch to before the commits
-git reset origin/main
-
-# Switch to new branch
-git checkout feature/correct-branch
+docker-compose ps postgres
+docker-compose logs postgres
+docker-compose restart postgres
 ```
 
-## Continuous Integration
+### Node Modules Issues
 
-All pull requests trigger automated checks:
+```bash
+npm cache clean --force
+rm -rf node_modules package-lock.json
+npm install
+```
 
-- ✅ Java build and tests (Maven)
-- ✅ JavaScript build and type checking (TypeScript)
-- ✅ Docker Compose validation
-- ✅ Code quality checks (future)
+### Maven Build Failure
 
-All checks must pass before merging.
+```bash
+rm -rf ~/.m2/repository
+mvn clean install
+```
 
-## Release Process
+## Performance Tips
 
-When ready for release:
+1. Use volume mounts for source code
+2. Enable Docker BuildKit
+3. Cache npm/Maven dependencies
+4. Use .dockerignore
+5. Run tests in CI/CD
 
-1. Create release branch: `release/v0.2.0`
-2. Update version numbers
-3. Update CHANGELOG
-4. Create release notes
-5. Tag release: `v0.2.0`
-6. Merge back to main and develop
+## Next Steps
 
-## Support
+- Review 03-CODING-STANDARDS.md for code conventions
+- Review 05-CONTRIBUTION-GUIDE.md for PR workflow
+- Check out existing PRs for examples
 
-- 📧 Email: support@rinoimob.com
-- 💬 Discussions: GitHub Discussions
-- 🐛 Issues: GitHub Issues
+## Questions?
 
-## Code of Conduct
-
-- Be respectful and inclusive
-- Provide constructive feedback
-- Help others learn and grow
-- Follow project values
-
-Thank you for contributing to Rinoimob! 🎉
+- Review the documentation in this folder
+- Check existing PRs for examples
+- Ask in team discussions
+- Reference the coding standards guide
