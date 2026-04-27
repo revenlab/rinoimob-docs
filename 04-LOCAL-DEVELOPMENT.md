@@ -44,13 +44,13 @@ mvn clean spring-boot:run
 ```
 
 Backend will be available at:
-- API: `http://localhost:8080`
-- **Swagger UI**: `http://localhost:8080/swagger-ui.html`
-- **OpenAPI Spec**: `http://localhost:8080/v3/api-docs`
+- API: `http://localhost:39000`
+- **Swagger UI**: `http://localhost:39000/swagger-ui.html`
+- **OpenAPI Spec**: `http://localhost:39000/v3/api-docs`
 
 Check if running:
 ```bash
-curl http://localhost:8080
+curl http://localhost:39000
 ```
 
 ### 3. Run Frontend App
@@ -126,13 +126,51 @@ All services support hot reload:
 
 Just save your changes and see results immediately!
 
-## Database Management
+## Environment Variables
+
+### Backend (.env)
+
+```env
+# Database
+DB_URL=jdbc:postgresql://localhost:5432/rinoimob
+DB_USER=user
+DB_PASSWORD=pass
+
+# JWT — must be ≥ 64 ASCII characters (HS512 requires ≥ 512 bits)
+JWT_SECRET=change-this-to-a-secret-that-is-at-least-64-characters-long-minimum
+
+# SMTP — for email verification and password reset
+MAIL_HOST=smtp.example.com
+MAIL_PORT=587
+MAIL_USERNAME=no-reply@example.com
+MAIL_PASSWORD=your-smtp-password
+MAIL_FROM=no-reply@example.com
+
+# App base URL — used in verification email links
+APP_BASE_URL=http://localhost:5173
+
+SPRING_PROFILE=dev
+```
+
+### App (.env.local)
+
+```env
+VITE_API_URL=http://localhost:39000/api
+```
+
+### Website (.env)
+
+```env
+NUXT_PUBLIC_API_URL=http://localhost:39000/api
+```
+
+
 
 ### Accessing PostgreSQL
 
 ```bash
 # Connect to PostgreSQL
-docker exec -it rinoimob-postgres psql -U postgres -d rinoimob
+docker exec -it rinoimob-postgres psql -U user -d rinoimob
 
 # Common commands
 \dt                    # List tables
@@ -153,7 +191,7 @@ docker volume rm rinoimob-infrastructure_postgres_data
 docker-compose up -d postgres
 
 # Run initialization script
-docker exec -i rinoimob-postgres psql -U postgres -d rinoimob < scripts/init-db.sql
+docker exec -i rinoimob-postgres psql -U user -d rinoimob < scripts/init-db.sql
 ```
 
 ## Redis Management
@@ -275,7 +313,7 @@ docker-compose restart
 
 ```bash
 # Find process using port
-lsof -i :8080   # Backend
+lsof -i :39000   # Backend
 lsof -i :5173   # App
 lsof -i :3000   # Website
 
@@ -290,7 +328,7 @@ kill -9 <PID>
 docker-compose ps postgres
 
 # Check database exists
-docker exec rinoimob-postgres psql -U postgres -l | grep rinoimob
+docker exec rinoimob-postgres psql -U user -l | grep rinoimob
 
 # View PostgreSQL logs
 docker-compose logs postgres
@@ -324,11 +362,12 @@ npm install
 ```bash
 cd rinoimob-backend
 
-# Run all tests
+# Run all tests (71 tests)
 mvn test
 
 # Run specific test class
-mvn test -Dtest=PropertyServiceTest
+mvn test -Dtest=AuthServiceTest
+mvn test -Dtest=TenantInterceptorTest
 
 # Run with coverage
 mvn test jacoco:report

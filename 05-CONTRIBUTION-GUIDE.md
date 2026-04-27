@@ -269,7 +269,7 @@ docker-compose restart postgres     # Restart service
 ### Port Already in Use
 
 ```bash
-lsof -i :8080
+lsof -i :39000
 lsof -i :5173
 lsof -i :3000
 ```

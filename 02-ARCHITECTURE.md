@@ -12,7 +12,8 @@ Rinoimob is a multi-repository, microservices-ready property management SaaS pla
 ┌─────────────────────────────────────────────────────────────────┐
 │                      Client Layer                               │
 ├──────────────────────┬──────────────────────┬───────────────────┤
-│  Web App (Vue 3)     │  Website (Nuxt 3)    │   Mobile (Future) │
+│  Admin App (Vue 3)   │  Website (Nuxt 3)    │   Mobile (Future) │
+│  Fixed domain        │  Tenant subdomain    │                   │
 │  Port: 5173          │  Port: 3000          │                   │
 └──────────────────────┴──────────────────────┴───────────────────┘
                               ↓
@@ -24,10 +25,11 @@ Rinoimob is a multi-repository, microservices-ready property management SaaS pla
 ┌─────────────────────────────────────────────────────────────────┐
 │                    API Layer                                    │
 │            Spring Boot 3 Backend (Java 17)                      │
-│            Port: 8080                                           │
-│            ├── REST API                                         │
-│            ├── Authentication                                   │
-│            └── Business Logic                                   │
+│            Port: 39000                                           │
+│            ├── REST API (/api/v1/*)                             │
+│            ├── Authentication (/api/auth/*)                     │
+│            ├── TenantContext per request (ThreadLocal)          │
+│            └── Business Logic (tenant-scoped queries)           │
 └─────────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────────┐
@@ -38,6 +40,25 @@ Rinoimob is a multi-repository, microservices-ready property management SaaS pla
 │  Port: 5432      │  Port: 6379      │  Ports: 5672, 15672       │
 └──────────────────┴──────────────────┴────────────────────────────┘
 ```
+
+## Multi-Tenant Model
+
+Rinoimob uses a **shared-schema, row-level multi-tenancy** approach:
+
+- All tenants share the same database schema
+- Every business table has a `tenant_id UUID NOT NULL` column
+- All queries are scoped by `tenant_id` — enforced at the repository layer
+- `TenantContext` (ThreadLocal) carries the resolved tenant UUID for the duration of each request
+
+See [07-MULTITENANT-AUTH.md](./07-MULTITENANT-AUTH.md) for the complete model.
+
+### Domain Routing
+
+| Domain type | Who uses it | Example |
+|---|---|---|
+| Fixed admin domain | Imobiliária staff / admin panel | `app.rinoimob.com` |
+| Tenant subdomain | Client-facing website of the imobiliária | `acme.rinoimob.com` |
+| Custom domain (future) | Tenant's own branding | `imoveis.acme.com.br` |
 
 ## Technology Stack
 
@@ -75,32 +96,52 @@ Rinoimob is a multi-repository, microservices-ready property management SaaS pla
 ```
 rinoimob/
 ├── rinoimob-backend/           # Spring Boot REST API
-│   ├── src/main/java/
+│   ├── src/main/java/com/rinoimob/
+│   │   ├── api/controller/     # REST controllers
+│   │   ├── config/             # Spring config, security, CORS
+│   │   ├── domain/
+│   │   │   ├── dto/            # Request/Response DTOs (records)
+│   │   │   ├── entity/         # JPA entities
+│   │   │   └── repository/     # Spring Data JPA repositories
+│   │   ├── interceptor/        # TenantInterceptor (subdomain fallback)
+│   │   ├── service/auth/       # AuthService, JwtTokenProvider
+│   │   ├── tenant/             # TenantContext (ThreadLocal)
+│   │   └── validation/         # @ValidPassword constraint
 │   ├── src/test/java/
 │   ├── pom.xml
 │   └── .github/workflows/ci.yml
 │
-├── rinoimob-app/               # Vue 3 Frontend Application
+├── rinoimob-app/               # Vue 3 Admin Frontend
 │   ├── src/
+│   │   ├── components/
+│   │   │   ├── auth/           # LoginForm, RegisterForm, etc.
+│   │   │   └── ui/             # PasswordStrength, shared UI
+│   │   ├── composables/        # usePasswordStrength, useAuth
+│   │   ├── layouts/            # AppLayout (sidebar shell)
+│   │   ├── stores/             # Pinia stores (auth, workspace)
+│   │   ├── views/              # Dashboard, Profile, ChangePassword
+│   │   └── router/             # Vue Router config
 │   ├── package.json
 │   └── .github/workflows/ci.yml
 │
-├── rinoimob-website/           # Nuxt 3 Website (SSR)
+├── rinoimob-website/           # Nuxt 3 Website (SSR, per-tenant)
 │   ├── pages/
 │   ├── package.json
 │   └── .github/workflows/ci.yml
 │
 ├── rinoimob-infrastructure/    # Docker Compose & IaC
 │   ├── docker-compose.yml
-│   ├── scripts/
-│   └── .github/workflows/ci.yml
+│   ├── .env.example
+│   └── scripts/
 │
 └── rinoimob-docs/              # Documentation
     ├── 01-SETUP.md
     ├── 02-ARCHITECTURE.md
     ├── 03-CODING-STANDARDS.md
     ├── 04-LOCAL-DEVELOPMENT.md
-    └── 05-CONTRIBUTION-GUIDE.md
+    ├── 05-CONTRIBUTION-GUIDE.md
+    ├── 06-DESIGN-SYSTEM-GLASSMORPHISM.md
+    └── 07-MULTITENANT-AUTH.md
 ```
 
 ## Deployment Strategy
@@ -123,12 +164,15 @@ rinoimob/
 
 ## Security Considerations
 
-- Spring Security for authentication/authorization
-- JWT tokens for API security
-- Environment variables for sensitive data
-- Database credentials managed via .env files
-- CORS configuration for frontend communication
-- Password hashing with bcrypt
+- Spring Security + JWT for authentication/authorization
+- **Two-step login**: identify → workspace select → scoped JWT (see [07-MULTITENANT-AUTH.md](./07-MULTITENANT-AUTH.md))
+- JWT secret must be **≥ 64 ASCII characters** (512 bits for HS512)
+- `TenantContext` set by `JwtAuthenticationFilter`; `TenantInterceptor` only acts as fallback for unauthenticated routes
+- All repository queries filtered by `tenant_id`
+- **Password policy**: min 6 chars, uppercase, lowercase, digit, special char (`@$!%*?&_-#^`)
+- Password hashing with **bcrypt** via Spring Security `BCryptPasswordEncoder`
+- Email verification required before login
+- Environment variables for all secrets — never commit credentials
 
 ## Scalability
 

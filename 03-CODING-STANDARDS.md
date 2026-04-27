@@ -111,17 +111,15 @@ class PropertyServiceTest
 ```
 src/
 ├── components/
-│   ├── common/
-│   ├── forms/
-│   └── layout/
-├── views/
-├── stores/
-├── services/
-├── types/
-├── utils/
-├── styles/
-└── assets/
-```
+│   ├── auth/           # LoginForm, RegisterForm, ResetPasswordForm, etc.
+│   └── ui/             # PasswordStrength, shared reusable components
+├── composables/        # usePasswordStrength, useAuth, etc.
+├── layouts/            # AppLayout (sidebar + header shell for authed views)
+├── views/              # Dashboard, Profile, ChangePassword, etc.
+├── stores/             # Pinia stores (auth, workspace)
+├── services/           # API clients
+├── types/              # TypeScript interfaces
+└── router/             # Vue Router config with auth guards
 
 ### Naming Conventions
 - **Classes**: PascalCase (`UserStore`, `PropertyApi`)
@@ -342,23 +340,36 @@ class UserServiceTest {
 ## Security Standards
 
 ### Password Hashing
-- Use **Argon2id** for password hashing
+- Use **bcrypt** via Spring Security's `BCryptPasswordEncoder`
 - Never store plaintext passwords
-- Use Spring Security's `PasswordEncoder` abstraction
+- Passwords are global per email (`global_credentials` table) — same hash across all tenants
+
+### Password Policy
+All passwords must satisfy the `@ValidPassword` constraint:
+- Minimum **6 characters**
+- At least one **uppercase** letter (`A-Z`)
+- At least one **lowercase** letter (`a-z`)
+- At least one **digit** (`0-9`)
+- At least one **special character** (`@$!%*?&_-#^`)
+
+Frontend enforcement via the `usePasswordStrength` composable + `PasswordStrength.vue` component.
 
 ### Authentication
-- Use **JWT (JSON Web Tokens)** for stateless auth
-- Include tenant_id in token claims
-- Set appropriate token expiration (15 min access, 7 day refresh)
+- **JWT (HS512)** — secret must be ≥ 64 ASCII characters (≥ 512 bits)
+- **Two-step login**: `preAuthToken` (5 min, workspace list) → `authToken` (24h, tenant-scoped)
+- JWT `authToken` carries: `sub` (email), `tenantId`, `userId`, `type=auth`
+- See [07-MULTITENANT-AUTH.md](./07-MULTITENANT-AUTH.md) for full flow
+
+### Tenant Isolation
+- `JwtAuthenticationFilter` resolves `tenantId` from JWT and stores in `TenantContext`
+- `TenantInterceptor` is a **fallback only** — it never overwrites a JWT-resolved tenant
+- All repository methods must include `tenantId` in their query — never query business data without it
+- Pattern: `findByTenantIdAnd*` not `findBy*` alone
 
 ### Authorization
-- Implement row-level security at database level
-- Always filter queries by tenant_id
-- Use Spring Security annotations (@PreAuthorize, @Secured)
-
-### Audit Logging
-- Log all user actions with: actor_id, tenant_id, action, timestamp, ip_address
-- Implement soft deletes (deleted_at timestamp, never hard delete)
+- Filter queries by `tenant_id` at the repository layer (not just service layer)
+- Use Spring Security annotations (`@PreAuthorize`, `@Secured`) for role checks
+- Audit logging planned: actor_id, tenant_id, action, timestamp, ip_address
 
 ## Comments
 

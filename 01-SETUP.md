@@ -118,19 +118,19 @@ Each project has an `.env.example` file. Copy it to `.env` or `.env.local` and c
 #### Backend (.env)
 ```
 DB_URL=jdbc:postgresql://localhost:5432/rinoimob
-DB_USER=postgres
-DB_PASSWORD=postgres_dev
+DB_USER=user
+DB_PASSWORD=pass
 SPRING_PROFILE=dev
 ```
 
 #### App (.env.local)
 ```
-VITE_API_URL=http://localhost:8080/api
+VITE_API_URL=http://localhost:39000/api
 ```
 
 #### Website (.env)
 ```
-NUXT_PUBLIC_API_URL=http://localhost:8080/api
+NUXT_PUBLIC_API_URL=http://localhost:39000/api
 ```
 
 ## Verification
@@ -139,10 +139,10 @@ After completing setup, verify everything works:
 
 ```bash
 # Backend is running
-curl http://localhost:8080
+curl http://localhost:39000
 
 # PostgreSQL is accessible
-docker exec rinoimob-postgres psql -U postgres -d rinoimob -c "SELECT 1"
+docker exec rinoimob-postgres psql -U user -d rinoimob -c "SELECT 1"
 
 # Redis is accessible
 docker exec rinoimob-redis redis-cli ping
